@@ -22,6 +22,26 @@ public class PDFGenerator {
 		this.tree = t;
 	}
 	
+	public void drawLines() {
+		try {
+			PDDocument doc = new PDDocument();
+			PDPage page = new PDPage(new PDRectangle(PAGE_WIDTH, PAGE_HEIGHT));
+			doc.addPage(page);
+			
+			PDPageContentStream content = new PDPageContentStream(doc, page);
+			
+			drawLines(0, tree, 0, PAGE_WIDTH);
+			
+		}  catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private void drawLines(int level, Tree t, float leftBorder, float rightBorder) {
+		
+	}
+	
+	
 	public void drawTree() {
 		
 		System.out.println(PAGE_HEIGHT + " " + PAGE_WIDTH);
