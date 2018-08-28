@@ -1,5 +1,6 @@
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 import org.apache.pdfbox.pdmodel.*;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
@@ -43,6 +44,14 @@ public class PDFGenerator {
 	private void drawLines(PDPageContentStream stream, int level, Tree t, float leftBorder, float rightBorder) {
 		float middle = (leftBorder + rightBorder) / 2;
 		Functions.drawLine(stream, middle, 0, middle, PAGE_HEIGHT - 25 * level);
+		
+		level++;
+		
+		ArrayList<Tree.Node> children = t.head.children;
+		float width = (rightBorder - leftBorder) / children.size();
+		for(int i = 0; i < children.size(); i++) {
+			drawLines(stream, level, new Tree(children.get(i)), leftBorder + i * width, leftBorder + (i + 1) * width);
+		}
 	}
 	
 	

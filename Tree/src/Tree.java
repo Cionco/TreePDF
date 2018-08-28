@@ -26,6 +26,10 @@ public class Tree {
 		head = new Node(name, null);
 	}
 	
+	public Tree(Node node) {
+		head = node;
+	}
+	
 	/**
 	 * Checks if a direct child node of the head
 	 * has the name <code>name</code>
