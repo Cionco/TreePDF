@@ -21,6 +21,6 @@ public class Test {
 		
 		
 		
-		new PDFGenerator(t).drawTree();
+		new PDFGenerator(t).drawLines();
 	}
 }

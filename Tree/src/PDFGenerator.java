@@ -30,15 +30,19 @@ public class PDFGenerator {
 			
 			PDPageContentStream content = new PDPageContentStream(doc, page);
 			
-			drawLines(0, tree, 0, PAGE_WIDTH);
+			drawLines(content, 0, tree, 0, PAGE_WIDTH);
 			
+			content.close();
+			doc.save("lines.pdf");
+			doc.close();
 		}  catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 	
-	private void drawLines(int level, Tree t, float leftBorder, float rightBorder) {
-		
+	private void drawLines(PDPageContentStream stream, int level, Tree t, float leftBorder, float rightBorder) {
+		float middle = (leftBorder + rightBorder) / 2;
+		Functions.drawLine(stream, middle, 0, middle, PAGE_HEIGHT - 25 * level);
 	}
 	
 	
