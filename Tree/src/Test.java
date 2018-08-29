@@ -20,7 +20,9 @@ public class Test {
 		System.out.println(t.toString());
 		
 		
-		
-		new PDFGenerator(t).drawLines();
+		PDFGenerator p = new PDFGenerator(t);
+		p.drawTree();
+//		p.drawLines();
+		p.drawNodeTexts();
 	}
 }

@@ -23,6 +23,44 @@ public class PDFGenerator {
 		this.tree = t;
 	}
 	
+	public void drawNodeTexts() {
+		try {
+			PDDocument doc = new PDDocument();
+			PDPage page = new PDPage(new PDRectangle(PAGE_WIDTH, PAGE_HEIGHT));
+			doc.addPage(page);
+			
+			PDRectangle mediabox = page.getMediaBox();
+			setCounters(mediabox);
+			
+			PDPageContentStream content = new PDPageContentStream(doc, page);
+			
+			content.beginText();
+			content.setFont(PDType1Font.HELVETICA, 18);
+			drawTextNodes(content, 0, tree, 0, PAGE_WIDTH);
+			
+			content.endText();
+			content.close();
+			doc.save("texts.pdf");
+			doc.close();
+		}  catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private void drawTextNodes(PDPageContentStream stream, int level, Tree t, float leftBorder, float rightBorder) throws IOException {
+		float middle = (leftBorder + rightBorder) / 2;
+		
+		centeredTextAtPosition(stream, middle, PAGE_HEIGHT - 25 * (level + 1), t.head.name);
+		
+		level++;
+		
+		ArrayList<Tree.Node> children = t.head.children;
+		float width = (rightBorder - leftBorder) / children.size();
+		for(int i = 0; i < children.size(); i++) {
+			drawTextNodes(stream, level, new Tree(children.get(i)), leftBorder + i * width, leftBorder + (i + 1) * width);
+		}
+	}
+	
 	public void drawLines() {
 		try {
 			PDDocument doc = new PDDocument();
@@ -54,10 +92,7 @@ public class PDFGenerator {
 		}
 	}
 	
-	
 	public void drawTree() {
-		
-		System.out.println(PAGE_HEIGHT + " " + PAGE_WIDTH);
 		
 		try {
 			PDDocument doc = new PDDocument();
@@ -65,12 +100,7 @@ public class PDFGenerator {
 			doc.addPage(page);
 			
 			PDRectangle mediabox = page.getMediaBox();
-			{
-		        float startX = mediabox.getLowerLeftX();
-		        float startY = mediabox.getUpperRightY();
-		        heightCounter = startY;
-		        widthCounter = startX;
-			}
+			setCounters(mediabox);
 
 			PDPageContentStream content = new PDPageContentStream(doc, page);
 			content.beginText();
@@ -83,9 +113,12 @@ public class PDFGenerator {
 			content.showText(text);
 			*/
 			
-			newCenteredLine(content, PAGE_WIDTH / 2, PAGE_HEIGHT - 50, text);
-			newCenteredLine(content, 0, 20, "HALLO ICH BINS UND ICH GEHE JETZT IN DIE TV LOUNGE");
+			//newCenteredLine(content, PAGE_WIDTH / 2, PAGE_HEIGHT - 50, text);
+			centeredTextAtPosition(content, PAGE_WIDTH / 2, PAGE_HEIGHT - 50, text);
+			newCenteredLine(content, 0, -20, "HALLO ICH BINS UND ICH GEHE JETZT IN DIE TV LOUNGE");
 			
+			centeredTextAtPosition(content, 0, 0, "hallo");
+			centeredTextAtPosition(content, 300, 200, "BLABLA");
 			
 			content.endText();
 			
@@ -98,6 +131,15 @@ public class PDFGenerator {
 		}
 		
 		
+	}
+
+	private void setCounters(PDRectangle mediabox) {
+		{
+		    float startX = mediabox.getLowerLeftX();
+		    float startY = mediabox.getLowerLeftY();
+		    heightCounter = startY;
+		    widthCounter = startX;
+		}
 	}
 
 	/**
@@ -120,9 +162,10 @@ public class PDFGenerator {
 	 * @throws IOException @see PDPageContentStream.newLineAtOffset
 	 */
 	private void newLineAtOffset(PDPageContentStream content, float tx, float ty) throws IOException {
-		System.out.println("Before: " + heightCounter +" " + widthCounter);
-		heightCounter -= tx;
-		widthCounter += ty;
+//		System.out.println("Before: " + heightCounter +" " + widthCounter);
+		widthCounter += tx;
+		heightCounter += ty;
+//		System.out.println("After: " + heightCounter +" " + widthCounter);
 		content.newLineAtOffset(tx, ty);
 	}
 	
@@ -140,6 +183,12 @@ public class PDFGenerator {
 		newLineAtOffset(content, getAlignmentConstant(text), 0);
 		content.showText(text);
 		newLineAtOffset(content, -getAlignmentConstant(text), 0);
+	}
+	
+	private void centeredTextAtPosition(PDPageContentStream content, float x, float y, String text) throws IOException {
+		float tx = x - widthCounter;
+		float ty = y - heightCounter;
+		newCenteredLine(content, tx, ty, text);
 	}
 	
 	
