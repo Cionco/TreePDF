@@ -100,25 +100,41 @@ public class PDFGenerator {
 		
 	}
 
+	/**
+	 * 
+	 * @param text
+	 * @return Float literal by how much the text has to be moved to the left so it is
+	 * 			centered around the cursor position
+	 * @throws IOException
+	 */
 	private float getAlignmentConstant(String text) throws IOException {
 		return -PDType1Font.HELVETICA.getStringWidth(text) / (2 * TRANSFORMATION);
 	}
 	
 	/**
-	 * 
+	 * Set cursor position to offset (currentX + tx / currentY + ty)
+	 * and adapts {@link #heightCounter} and {@link #widthCounter}
 	 * @param content
-	 * @param tx
-	 * @param ty
+	 * @param tx Offset X
+	 * @param ty Offset Y
 	 * @throws IOException @see PDPageContentStream.newLineAtOffset
 	 */
 	private void newLineAtOffset(PDPageContentStream content, float tx, float ty) throws IOException {
 		System.out.println("Before: " + heightCounter +" " + widthCounter);
 		heightCounter -= tx;
 		widthCounter += ty;
-		System.out.println("After: " + heightCounter +" " + widthCounter);
 		content.newLineAtOffset(tx, ty);
 	}
 	
+	/**
+	 * Set cursor position to offset {@link #newLineAtOffset(PDPageContentStream, float, float)}
+	 * and generates text cursor position will be the center of the text
+	 * @param content
+	 * @param tx Offset X
+	 * @param ty Offset Y
+	 * @param text Text to show
+	 * @throws IOException
+	 */
 	private void newCenteredLine(PDPageContentStream content, float tx, float ty, String text) throws IOException {
 		newLineAtOffset(content, tx, ty);
 		newLineAtOffset(content, getAlignmentConstant(text), 0);
