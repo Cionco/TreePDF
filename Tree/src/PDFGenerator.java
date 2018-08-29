@@ -10,6 +10,7 @@ import lib.Functions;
 
 public class PDFGenerator {
 
+	private static final int LINE_SPACE = 40;
 	final float PAGE_HEIGHT = PDRectangle.A4.getWidth();
 	final float PAGE_WIDTH = PDRectangle.A4.getHeight();
 	final float TRANSFORMATION = 55.458564767f;
@@ -50,7 +51,7 @@ public class PDFGenerator {
 	private void drawTextNodes(PDPageContentStream stream, int level, Tree t, float leftBorder, float rightBorder) throws IOException {
 		float middle = (leftBorder + rightBorder) / 2;
 		
-		centeredTextAtPosition(stream, middle, PAGE_HEIGHT - 25 * (level + 1), t.head.name);
+		centeredTextAtPosition(stream, middle, PAGE_HEIGHT - LINE_SPACE * (level + 1), t.head.name);
 		
 		level++;
 		
@@ -81,7 +82,7 @@ public class PDFGenerator {
 	
 	private void drawLines(PDPageContentStream stream, int level, Tree t, float leftBorder, float rightBorder) {
 		float middle = (leftBorder + rightBorder) / 2;
-		Functions.drawLine(stream, middle, 0, middle, PAGE_HEIGHT - 25 * level);
+		Functions.drawLine(stream, middle, 0, middle, PAGE_HEIGHT - LINE_SPACE * level);
 		
 		level++;
 		
