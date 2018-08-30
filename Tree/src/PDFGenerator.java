@@ -10,10 +10,12 @@ import lib.Functions;
 
 public class PDFGenerator {
 
-	private static final int LINE_SPACE = 40;
+	private static final int TEXT_SIZE = 18;
+	private static final int LINE_SPACE = 50;
 	final float PAGE_HEIGHT = PDRectangle.A4.getWidth();
 	final float PAGE_WIDTH = PDRectangle.A4.getHeight();
 	final float TRANSFORMATION = 55.458564767f;
+	final float PADDING = 3.0f;
 	final String FILENAME = "Tree.pdf";
 	
 	Tree tree;
@@ -24,7 +26,7 @@ public class PDFGenerator {
 		this.tree = t;
 	}
 	
-	public void drawNodeTexts() {
+	public void drawNodes() {
 		try {
 			PDDocument doc = new PDDocument();
 			PDPage page = new PDPage(new PDRectangle(PAGE_WIDTH, PAGE_HEIGHT));
@@ -36,10 +38,12 @@ public class PDFGenerator {
 			PDPageContentStream content = new PDPageContentStream(doc, page);
 			
 			content.beginText();
-			content.setFont(PDType1Font.HELVETICA, 18);
+			content.setFont(PDType1Font.HELVETICA, TEXT_SIZE);
 			drawNodeTexts(content, 0, tree, 0, PAGE_WIDTH);
-			
 			content.endText();
+			
+			drawNodeRectangles(content, 0, tree, 0, PAGE_WIDTH);
+			
 			content.close();
 			doc.save("texts.pdf");
 			doc.close();
@@ -52,6 +56,7 @@ public class PDFGenerator {
 		float middle = (leftBorder + rightBorder) / 2;
 		
 		centeredTextAtPosition(stream, middle, PAGE_HEIGHT - LINE_SPACE * (level + 1), t.head.name);
+//		centeredRectangleAroundTextAtPosition(stream, middle, PAGE_HEIGHT - LINE_SPACE * (level + 1), t.head.name);
 		
 		level++;
 		
@@ -59,6 +64,21 @@ public class PDFGenerator {
 		float width = (rightBorder - leftBorder) / children.size();
 		for(int i = 0; i < children.size(); i++) {
 			drawNodeTexts(stream, level, new Tree(children.get(i)), leftBorder + i * width, leftBorder + (i + 1) * width);
+		}
+	}
+	
+	private void drawNodeRectangles(PDPageContentStream stream, int level, Tree t, float leftBorder, float rightBorder) throws IOException {
+		float middle = (leftBorder + rightBorder) / 2;
+		
+//		centeredTextAtPosition(stream, middle, PAGE_HEIGHT - LINE_SPACE * (level + 1), t.head.name);
+		centeredRectangleAroundTextAtPosition(stream, middle, PAGE_HEIGHT - LINE_SPACE * (level + 1), t.head.name);
+		
+		level++;
+		
+		ArrayList<Tree.Node> children = t.head.children;
+		float width = (rightBorder - leftBorder) / children.size();
+		for(int i = 0; i < children.size(); i++) {
+			drawNodeRectangles(stream, level, new Tree(children.get(i)), leftBorder + i * width, leftBorder + (i + 1) * width);
 		}
 	}
 	
@@ -147,7 +167,7 @@ public class PDFGenerator {
 	 * 
 	 * @param text
 	 * @return Float literal by how much the text has to be moved to the left so it is
-	 * 			centered around the cursor position
+	 * 			centered around the cursor position. Returns negative value --> Movement to the left
 	 * @throws IOException
 	 */
 	private float getAlignmentConstant(String text) throws IOException {
@@ -192,5 +212,29 @@ public class PDFGenerator {
 		newCenteredLine(content, tx, ty, text);
 	}
 	
+	/**
+	 * Creates a x-Centered (y-Bottom) Rectangle at the specified position adding {@link #PADDING} on each side
+	 * @param content
+	 * @param x
+	 * @param y
+	 * @param text
+	 * @throws IOException
+	 */
+	private void centeredRectangleAroundTextAtPosition(PDPageContentStream content, float x, float y, String text) throws IOException {
+		//source: https://stackoverflow.com/questions/17171815/get-the-font-height-of-a-character-in-pdfbox
+		float height = (PDType1Font.HELVETICA.getFontDescriptor().getCapHeight()) / 1000 * TEXT_SIZE;
+		
+		float top = y + height + PADDING
+			, bottom = y - PADDING
+			, left = x - -getAlignmentConstant(text) - PADDING
+			, right = x + -getAlignmentConstant(text) + PADDING;
+		
+		
+		
+		Functions.drawLine(content, left, bottom, right, bottom);
+		Functions.drawLine(content, left, bottom, left, top);
+		Functions.drawLine(content, left, top, right, top);
+		Functions.drawLine(content, right, top, right, bottom);
+	}
 	
 }
