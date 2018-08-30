@@ -37,7 +37,7 @@ public class PDFGenerator {
 			
 			content.beginText();
 			content.setFont(PDType1Font.HELVETICA, 18);
-			drawTextNodes(content, 0, tree, 0, PAGE_WIDTH);
+			drawNodeTexts(content, 0, tree, 0, PAGE_WIDTH);
 			
 			content.endText();
 			content.close();
@@ -48,7 +48,7 @@ public class PDFGenerator {
 		}
 	}
 	
-	private void drawTextNodes(PDPageContentStream stream, int level, Tree t, float leftBorder, float rightBorder) throws IOException {
+	private void drawNodeTexts(PDPageContentStream stream, int level, Tree t, float leftBorder, float rightBorder) throws IOException {
 		float middle = (leftBorder + rightBorder) / 2;
 		
 		centeredTextAtPosition(stream, middle, PAGE_HEIGHT - LINE_SPACE * (level + 1), t.head.name);
@@ -58,7 +58,7 @@ public class PDFGenerator {
 		ArrayList<Tree.Node> children = t.head.children;
 		float width = (rightBorder - leftBorder) / children.size();
 		for(int i = 0; i < children.size(); i++) {
-			drawTextNodes(stream, level, new Tree(children.get(i)), leftBorder + i * width, leftBorder + (i + 1) * width);
+			drawNodeTexts(stream, level, new Tree(children.get(i)), leftBorder + i * width, leftBorder + (i + 1) * width);
 		}
 	}
 	
