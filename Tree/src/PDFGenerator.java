@@ -42,7 +42,11 @@ public class PDFGenerator {
 			drawNodeTexts(content, 0, tree, 0, PAGE_WIDTH);
 			content.endText();
 			
-			drawNodeRectangles(content, 0, tree, 0, PAGE_WIDTH);
+			//Can't do both at once because the drawLine function is not usable between beginText() and endText()
+			//TODO Maybe fix this later on by opening and closing Text block every time when creating the text			
+			drawNodeRectangles(content, 0, tree, 0, PAGE_WIDTH); 
+			
+			drawLines(content, 0, tree, 0, PAGE_WIDTH, 0, 0);
 			
 			content.close();
 			doc.save("texts.pdf");
@@ -56,7 +60,6 @@ public class PDFGenerator {
 		float middle = (leftBorder + rightBorder) / 2;
 		
 		centeredTextAtPosition(stream, middle, PAGE_HEIGHT - LINE_SPACE * (level + 1), t.head.name);
-//		centeredRectangleAroundTextAtPosition(stream, middle, PAGE_HEIGHT - LINE_SPACE * (level + 1), t.head.name);
 		
 		level++;
 		
@@ -70,7 +73,6 @@ public class PDFGenerator {
 	private void drawNodeRectangles(PDPageContentStream stream, int level, Tree t, float leftBorder, float rightBorder) throws IOException {
 		float middle = (leftBorder + rightBorder) / 2;
 		
-//		centeredTextAtPosition(stream, middle, PAGE_HEIGHT - LINE_SPACE * (level + 1), t.head.name);
 		centeredRectangleAroundTextAtPosition(stream, middle, PAGE_HEIGHT - LINE_SPACE * (level + 1), t.head.name);
 		
 		level++;
@@ -82,34 +84,18 @@ public class PDFGenerator {
 		}
 	}
 	
-	public void drawLines() {
-		try {
-			PDDocument doc = new PDDocument();
-			PDPage page = new PDPage(new PDRectangle(PAGE_WIDTH, PAGE_HEIGHT));
-			doc.addPage(page);
-			
-			PDPageContentStream content = new PDPageContentStream(doc, page);
-			
-			drawLines(content, 0, tree, 0, PAGE_WIDTH);
-			
-			content.close();
-			doc.save("lines.pdf");
-			doc.close();
-		}  catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	private void drawLines(PDPageContentStream stream, int level, Tree t, float leftBorder, float rightBorder) {
+	private void drawLines(PDPageContentStream stream, int level, Tree t, float leftBorder, float rightBorder, float parentx, float parenty) {
 		float middle = (leftBorder + rightBorder) / 2;
-		Functions.drawLine(stream, middle, 0, middle, PAGE_HEIGHT - LINE_SPACE * level);
+		float y = PAGE_HEIGHT - LINE_SPACE * (level + 1);
+		if(!(parentx == 0 && parenty == 0))
+			Functions.drawLine(stream, middle, y + getTextHeight() + PADDING, parentx, parenty - PADDING);
 		
 		level++;
 		
 		ArrayList<Tree.Node> children = t.head.children;
 		float width = (rightBorder - leftBorder) / children.size();
 		for(int i = 0; i < children.size(); i++) {
-			drawLines(stream, level, new Tree(children.get(i)), leftBorder + i * width, leftBorder + (i + 1) * width);
+			drawLines(stream, level, new Tree(children.get(i)), leftBorder + i * width, leftBorder + (i + 1) * width, middle, y);
 		}
 	}
 	
@@ -221,8 +207,7 @@ public class PDFGenerator {
 	 * @throws IOException
 	 */
 	private void centeredRectangleAroundTextAtPosition(PDPageContentStream content, float x, float y, String text) throws IOException {
-		//source: https://stackoverflow.com/questions/17171815/get-the-font-height-of-a-character-in-pdfbox
-		float height = (PDType1Font.HELVETICA.getFontDescriptor().getCapHeight()) / 1000 * TEXT_SIZE;
+		float height = getTextHeight();
 		
 		float top = y + height + PADDING
 			, bottom = y - PADDING
@@ -235,6 +220,12 @@ public class PDFGenerator {
 		Functions.drawLine(content, left, bottom, left, top);
 		Functions.drawLine(content, left, top, right, top);
 		Functions.drawLine(content, right, top, right, bottom);
+	}
+
+	private float getTextHeight() {
+		//source: https://stackoverflow.com/questions/17171815/get-the-font-height-of-a-character-in-pdfbox
+		float height = (PDType1Font.HELVETICA.getFontDescriptor().getCapHeight()) / 1000 * TEXT_SIZE;
+		return height;
 	}
 	
 }
