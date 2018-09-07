@@ -2,14 +2,7 @@ import java.util.ArrayList;
 
 
 /**
- * XML is a language that is used to display hierarchic structured data
- * in form of a textfile. That means using trees to translate the structure
- * into Java Objects is quite convenient.
- * The basic structure of these Trees just consists of {@link #head}.
- * As this class is specifically used for input statement XMLs recieved
- * from the German Stock Exchange these trees consist of a few more members
- * specifying the XML better. 
- * 
+ *
  * @author Nicolas Kepper
  *
  */
