@@ -23,6 +23,6 @@ public class Test {
 		PDFGenerator p = new PDFGenerator(t);
 		p.drawTree();
 //		p.drawLines();
-		p.drawNodes();
+		p.drawTest();
 	}
 }

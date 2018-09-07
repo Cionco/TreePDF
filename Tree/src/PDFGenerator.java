@@ -2,6 +2,8 @@
 import java.io.IOException;
 import java.util.ArrayList;
 
+import javax.sound.midi.Synthesizer;
+
 import org.apache.pdfbox.pdmodel.*;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
@@ -12,13 +14,15 @@ public class PDFGenerator {
 
 	private static final int TEXT_SIZE = 18;
 	private static final int LINE_SPACE = 50;
-	final float PAGE_HEIGHT = PDRectangle.A4.getWidth();
-	final float PAGE_WIDTH = PDRectangle.A4.getHeight();
-	final float TRANSFORMATION = 55.458564767f;
-	final float PADDING = 3.0f;
-	final String FILENAME = "Tree.pdf";
+	private final float PAGE_HEIGHT = PDRectangle.A4.getWidth();
+	private final float PAGE_WIDTH = PDRectangle.A4.getHeight();
+	private final float TRANSFORMATION = 55.458564767f;
+	private final float PADDING = 3.0f;
+	private final float ELLIPSE_PADDING = 10.0f;
+	public final String FILENAME = "Tree.pdf";
+	private final float RY = 15.0f;
 	
-	Tree tree;
+	private Tree tree;
 	private float heightCounter;
 	private float widthCounter;
 	
@@ -26,7 +30,7 @@ public class PDFGenerator {
 		this.tree = t;
 	}
 	
-	public void drawNodes() {
+	public void drawTree() {
 		try {
 			PDDocument doc = new PDDocument();
 			PDPage page = new PDPage(new PDRectangle(PAGE_WIDTH, PAGE_HEIGHT));
@@ -49,11 +53,15 @@ public class PDFGenerator {
 			drawLines(content, 0, tree, 0, PAGE_WIDTH, 0, 0);
 			
 			content.close();
-			doc.save("texts.pdf");
+			doc.save(FILENAME);
 			doc.close();
 		}  catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public void drawTest() {
+		
 	}
 	
 	private void drawNodeTexts(PDPageContentStream stream, int level, Tree t, float leftBorder, float rightBorder) throws IOException {
@@ -68,6 +76,10 @@ public class PDFGenerator {
 		for(int i = 0; i < children.size(); i++) {
 			drawNodeTexts(stream, level, new Tree(children.get(i)), leftBorder + i * width, leftBorder + (i + 1) * width);
 		}
+		
+		if(t.head.leaf && t.head.value != null) {
+			centeredTextAtPosition(stream, middle, PAGE_HEIGHT - LINE_SPACE * (level + 1), t.head.value);
+		}
 	}
 	
 	private void drawNodeRectangles(PDPageContentStream stream, int level, Tree t, float leftBorder, float rightBorder) throws IOException {
@@ -81,6 +93,12 @@ public class PDFGenerator {
 		float width = (rightBorder - leftBorder) / children.size();
 		for(int i = 0; i < children.size(); i++) {
 			drawNodeRectangles(stream, level, new Tree(children.get(i)), leftBorder + i * width, leftBorder + (i + 1) * width);
+		}
+		
+		if(t.head.leaf && t.head.value != null) {
+//			centeredTextAtPosition(stream, middle, PAGE_HEIGHT - LINE_SPACE * (level + 1), t.head.value);
+			
+			centeredEllipseAroundTextAtPosition(stream, middle, PAGE_HEIGHT - LINE_SPACE * (level + 1), t.head.value);
 		}
 	}
 	
@@ -97,47 +115,12 @@ public class PDFGenerator {
 		for(int i = 0; i < children.size(); i++) {
 			drawLines(stream, level, new Tree(children.get(i)), leftBorder + i * width, leftBorder + (i + 1) * width, middle, y);
 		}
-	}
-	
-	public void drawTree() {
 		
-		try {
-			PDDocument doc = new PDDocument();
-			PDPage page = new PDPage(new PDRectangle(PAGE_WIDTH, PAGE_HEIGHT));
-			doc.addPage(page);
-			
-			PDRectangle mediabox = page.getMediaBox();
-			setCounters(mediabox);
-
-			PDPageContentStream content = new PDPageContentStream(doc, page);
-			content.beginText();
-			
-			content.setFont(PDType1Font.HELVETICA, 18);
-			String text = "HALLO ICH BINS";
-			/*newLineAtOffset(content, PAGE_WIDTH / 2, PAGE_HEIGHT - 50);
-			content.showText(text);
-			newLineAtOffset(content, getAlignmentConstant(text), 20);
-			content.showText(text);
-			*/
-			
-			//newCenteredLine(content, PAGE_WIDTH / 2, PAGE_HEIGHT - 50, text);
-			centeredTextAtPosition(content, PAGE_WIDTH / 2, PAGE_HEIGHT - 50, text);
-			newCenteredLine(content, 0, -20, "HALLO ICH BINS UND ICH GEHE JETZT IN DIE TV LOUNGE");
-			
-			centeredTextAtPosition(content, 0, 0, "hallo");
-			centeredTextAtPosition(content, 300, 200, "BLABLA");
-			
-			content.endText();
-			
-			content.close();
-			doc.save(FILENAME);
-			doc.close();
-			
-		} catch (IOException e) {
-			e.printStackTrace();
+		if(t.head.leaf && t.head.value != null) {
+//			centeredTextAtPosition(stream, middle, PAGE_HEIGHT - LINE_SPACE * (level + 1), t.head.value);
+//			centeredEllipseAroundTextAtPosition(stream, middle, PAGE_HEIGHT - LINE_SPACE * (level + 1), t.head.value);
+			Functions.drawLine(stream, middle, y - PADDING, middle, PAGE_HEIGHT - LINE_SPACE * (level + 1) + 15.0f + getTextHeight() / 2);
 		}
-		
-		
 	}
 
 	private void setCounters(PDRectangle mediabox) {
@@ -220,6 +203,21 @@ public class PDFGenerator {
 		Functions.drawLine(content, left, bottom, left, top);
 		Functions.drawLine(content, left, top, right, top);
 		Functions.drawLine(content, right, top, right, bottom);
+	}
+	
+	/**
+	 * Creates a centered Ellipse at the specified position
+	 * @param content
+	 * @param x x-middle of ellipse
+	 * @param y y-bottom of text in ellipse
+	 * @param text
+	 * @throws IOException
+	 */
+	private void centeredEllipseAroundTextAtPosition(PDPageContentStream content, float x, float y, String text) throws IOException {
+		float height = getTextHeight();
+		float 	rx = -getAlignmentConstant(text) + ELLIPSE_PADDING;
+		
+		Functions.drawEllipse(content, x, y + height / 2, Math.max(rx, 25), RY);
 	}
 
 	private float getTextHeight() {
